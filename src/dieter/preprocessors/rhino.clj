@@ -14,4 +14,4 @@
                    filename 1 nil))
 
 (defn js-keys [obj]
-  (seq (NativeObject/getPropertyIds foo)))
+  (seq (NativeObject/getPropertyIds obj)))
