@@ -1,6 +1,6 @@
 (ns dieter.asset.manifest
   (:use
-   [dieter.asset :only [read-asset make-asset]]
+   [dieter.asset :only [read-asset get-asset make-asset]]
    [dieter.path :only [search-dir find-file]]
    [dieter.util :only [slurp-into string-builder]])
   (:require
@@ -52,7 +52,15 @@ We should probably consider outputting some kind of warning in that case."
   (read-asset [this options]
     (let [builder (string-builder)
           target-name (s/replace (:file this) #".dieter$" "")
-          result (make-asset (io/file target-name))]
-      (doseq [file (manifest-files (:file this))]
-        (.append builder (:content (read-asset (make-asset file) options))))
-      (assoc result :content builder))))
+          ;; set result to an asset of the proper type
+          ;; for example app.js.dieter => Js
+          ;; with file pointing to the .dieter file
+          result (make-asset (io/file target-name) {:file file})
+          assets  (map #(get-asset % options)
+                       (manifest-files (:file this)))]
+      ;; todo: only rebuild assets if (file-changed? result)
+      (doseq [asset assets]
+        (.append builder (:content asset)))
+      (assoc result
+        :content builder
+        :composed-of assets))))

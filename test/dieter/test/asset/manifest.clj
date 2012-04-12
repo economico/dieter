@@ -39,3 +39,8 @@
 
     (testing "multiple requires are included only once, the first occurrence"
       (is (has-text? text "var file = \"/lib/framework.js\"" 1)))))
+
+(deftest test-dieter-returns-proper-type
+  (let [manifest (make-asset (io/file "test/fixtures/assets/javascripts/manifest.js.dieter"))]
+    (is (= (class manifest) dieter.asset.manifest.Dieter))
+    (is (= (class (read-asset manifest {})) dieter.asset.javascript.Js))))

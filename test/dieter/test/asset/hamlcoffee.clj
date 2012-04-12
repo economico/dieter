@@ -2,6 +2,8 @@
   (:use dieter.asset.hamlcoffee)
   (:use clojure.test)
   (:use dieter.test.helpers)
+  (:use dieter.asset)
+  (:require dieter.asset.javascript)
   (:require [clojure.java.io :as io]))
 
 (defn wrap [name output]
@@ -17,6 +19,15 @@
     (is (= (wrap "basic"  "<!DOCTYPE html>\\n<html>\\n  <head>\\n    <title>\\n      Title\\n    </title>\\n  </head>\\n  <body>\\n    <h1>\\n      Header\\n    </h1>\\n  </body>\\n</html>")
            (preprocess-hamlcoffee
             (io/file "test/fixtures/assets/javascripts/basic.hamlc"))))))
+
+(deftest test-hamlcoffee-record
+  (testing "read-asset returns a Js asset"
+    (let [asset (map->HamlCoffee {:file (io/file "test/fixtures/assets/javascripts/basic.hamlc")})
+          after-read (read-asset asset {})]
+      (is (= dieter.asset.javascript.Js (class after-read)))
+      (is (= asset (first (:composed-of after-read))))
+      (is (not= nil (:last-modified after-read)))
+      (is (not= nil (:content after-read))))))
 
   ;; (testing "file with surround and succeed"
   ;;   (is (= "TODO"

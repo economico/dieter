@@ -1,4 +1,5 @@
 (ns dieter.test.asset.less
+  (:use dieter.asset)
   (:use dieter.asset.less)
   (:use clojure.test)
   (:use dieter.test.helpers)
@@ -17,3 +18,12 @@
       (catch Exception e
         (is (has-text? (.toString e) "Syntax Error on line 1"))
         (is (has-text? (.toString e) "@import \"includeme.less\""))))))
+
+(deftest test-less-record
+  (testing "read-asset returns a Css asset"
+    (let [asset (map->Less {:file (io/file "test/fixtures/assets/stylesheets/basic.less")})
+          after-read (read-asset asset {})]
+      (is (= dieter.asset.css.Css (class after-read)))
+      (is (= asset (first (:composed-of after-read))))
+      (is (not= nil (:last-modified after-read)))
+      (is (not= nil (:content after-read))))))

@@ -1,8 +1,8 @@
 (ns dieter.asset.hamlcoffee
   (:use dieter.rhino)
-  (:require
-   dieter.asset.javascript
-   [clojure.string :as cstr]))
+  (:use [dieter.asset.javascript :only [map->Js]])
+  (:require dieter.asset)
+  (:require [clojure.string :as cstr]))
 
 (defn filename-without-ext [file]
   (cstr/replace (.getName file) #"\..*$" ""))
@@ -21,4 +21,7 @@
 (defrecord HamlCoffee [file]
   dieter.asset.Asset
   (read-asset [this options]
-    (dieter.asset.javascript.Js. (:file this) (preprocess-hamlcoffee (:file this)))))
+    (map->Js {:file (:file this)
+              :content (preprocess-hamlcoffee (:file this))
+              :last-modified (.lastModified (:file this))
+              :composed-of [this]})))

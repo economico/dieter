@@ -20,6 +20,7 @@
   (md5 (.getBytes (str string) "UTF-8")))
 
 (defn add-md5 [path content]
+  "Return a new path which includes the MD5 hash of the file's contents"
   (if-let [[match fname ext] (re-matches #"^(.+)\.(\w+)$" path)]
     (str fname "-" (md5 content) "." ext)
     (str path "-" (md5 content))))
@@ -34,14 +35,16 @@
     (.write out content)))
 
 (defn cached-file-path
-  "given the request path, generate the filename of where the file
+  "Given the request path, generate the filename of where the file
 will be cached. Cache is rooted at cache-root/assets/ so that
 static file middleware can be rooted at cache-root"
   [requested-file content]
-  (add-md5 (cstr/replace-first requested-file "/assets/" (str "/" (cache-root) "/assets/")) content))
+  (add-md5
+   (cstr/replace-first requested-file "/assets/" (str "/" (cache-root) "/assets/"))
+   content))
 
 (defn search-dir
-  "return the directory to use as the root of a search for relative-file"
+  "Return the directory to use as the root of a search for relative-file"
   [relative-path start-dir]
   (let [relative-file (io/file relative-path)
         relative-parent (.getParent relative-file)]
@@ -50,13 +53,18 @@ static file middleware can be rooted at cache-root"
      relative-parent (io/file start-dir relative-parent)
      :else start-dir)))
 
-(defn find-in-files [filename files]
+(defn find-in-files
+  "Find the first file whose name is an exact match, or whose basename
+matches (ignoring file extension)"
+  [filename files]
   (let [[_ basename] (re-matches #"(^.*?)(?:\.\w+)?$" filename)
         pattern (re-pattern (str "^" basename ".*$"))]
     (or (first (filter #(= filename (.getName %)) files))
         (first (filter #(re-matches pattern (.getName %)) files)))))
 
-(defn find-file [partial-path start-dir]
+(defn find-file
+  "Find the first file under start-dir which matches the partial path"
+  [partial-path start-dir]
   (let [relative-file (io/file partial-path)
         filename (.getName relative-file)
         search-dir (search-dir partial-path start-dir)]
@@ -64,15 +72,21 @@ static file middleware can be rooted at cache-root"
       (find-in-files filename (.listFiles search-dir))
       (find-in-files filename (file-seq search-dir)))))
 
-(defn file-ext [file]
+(defn file-ext
+  "Return file extension (everything after the last '.')"
+  [file]
   (last (cstr/split (str file) #"\.")))
 
-(defn uncachify-filename [filename]
+(defn uncachify-filename
+  "Return the original file name with MD5 removed"
+  [filename]
   (if-let [[match fname hash ext] (re-matches #"^(.+)-([\da-f]{32})\.(\w+)$" filename)]
     (str fname "." ext)
     filename))
 
-(defn make-relative-to-cache [path]
+(defn make-relative-to-cache
+  "Remove the part of the path up to and including the cache root."
+  [path]
   (cstr/replace-first path (re-pattern (str ".*" (cache-root))) ""))
 
 (defmulti cache-busting-path

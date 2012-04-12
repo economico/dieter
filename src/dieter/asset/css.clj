@@ -1,6 +1,9 @@
 (ns dieter.asset.css
-  (:use [dieter.util :only [slurp-into string-builder]])
-  (:require [clojure.string :as s]))
+  (:use
+   [dieter.util :only [slurp-into string-builder]])
+  (:require
+   dieter.asset
+   [clojure.string :as s]))
 
 (defn compress-css [text]
   (-> text
@@ -8,13 +11,14 @@
       (s/replace #"\s+" " ")
       (s/replace #"^\s" "")))
 
-(defrecord Css [file content]
+(defrecord Css [file content last-modified composed-of]
   dieter.asset.Asset
   (read-asset [this options]
-    (assoc this :content
-           (slurp-into
-            (string-builder "/* Source: " (:file this) " */\n")
-            (:file this))))
+    (assoc this
+      :content (slurp-into
+                (string-builder "/* Source: " (:file this) " */\n")
+                (:file this))
+      :last-modified (.lastModified (:file this))))
 
   dieter.asset.Compressor
   (compress [this options]

@@ -1,10 +1,10 @@
 (ns dieter.asset.less
   (:use
-   [dieter.rhino :only (with-scope make-pool call)])
+   [dieter.rhino :only (with-scope make-pool call)]
+   [dieter.asset.css :only [map->Css]])
   (:require
-   dieter.asset.css
-   [clojure.string :as cstr]
-   [dieter.asset :as asset]))
+   dieter.asset
+   dieter.asset.css))
 
 (def pool (make-pool))
 
@@ -15,4 +15,7 @@
 (defrecord Less [file]
   dieter.asset.Asset
   (read-asset [this options]
-    (dieter.asset.css.Css. (:file this) (preprocess-less (:file this)))))
+    (map->Css {:file (:file this)
+               :content (preprocess-less (:file this))
+               :last-modified (.lastModified (:file this))
+               :composed-of [this]})))

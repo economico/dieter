@@ -7,7 +7,7 @@
   (:require [clojure.java.io :as io]))
 
 (deftest test-read-asset-css
-  (let [asset (read-asset (Css. (io/file "test/fixtures/assets/stylesheets/main.css") nil) {})]
+  (let [asset (read-asset (map->Css {:file (io/file "test/fixtures/assets/stylesheets/main.css")}) {})]
     (testing "adds a source comment"
       (is (has-text? (:content asset) "/* Source: test/fixtures/assets/stylesheets/main.css */")))
     (testing "includes file contents"
@@ -15,7 +15,7 @@
 
 (deftest test-compress-css
   (let [uncompressed-css "   .content .p {\n color: #fff;\n }"
-        asset (Css. "filename.css" uncompressed-css)]
+        asset (map->Css {:file "filename.css" :content uncompressed-css})]
     (testing "compression disabled"
       (is (= uncompressed-css
              (compress asset {:compress false}))))

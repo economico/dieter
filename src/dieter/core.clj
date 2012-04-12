@@ -40,12 +40,15 @@
 (defn find-and-cache-asset [requested-path]
   (if-let [file (find-file requested-path (asset-root))]
     (-> file
-        (make-asset)
-        (read-asset *settings*)
+        (get-asset *settings*)
         (compress *settings*)
         (write-to-cache requested-path))))
 
-(defn asset-builder [app & [options]]
+(defn asset-builder
+  "Ring middleware that can compile known types of assets into javascript and
+css. If the requested uri is found to live under the asset-path it is compiled
+and served."
+  [app & [options]]
   (fn [req]
     (binding [*settings* (merge *settings* options)]
       (let [path (uncachify-filename (:uri req))]

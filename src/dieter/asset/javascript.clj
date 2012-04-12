@@ -1,4 +1,5 @@
 (ns dieter.asset.javascript
+  (:require dieter.asset)
   (:use
    [dieter.util :only [slurp-into string-builder]])
   (:import
@@ -29,13 +30,14 @@
         text
         source))))
 
-(defrecord Js [file content]
+(defrecord Js [file content last-modified composed-of]
   dieter.asset.Asset
   (read-asset [this options]
-    (assoc this :content
-           (slurp-into
-            (string-builder "/* Source: " (:file this) " */\n")
-            (:file this))))
+    (assoc this
+      :content (slurp-into
+                (string-builder "/* Source: " (:file this) " */\n")
+                (:file this))
+      :last-modified (.lastModified (:file this))))
 
   dieter.asset.Compressor
   (compress [this options]
