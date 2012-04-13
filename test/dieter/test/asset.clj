@@ -36,7 +36,8 @@
 (deftest test-get-asset
   (register "js" map->AssetTest)
   (let [file (io/file "test/fixtures/assets/javascripts/lib.js")
-        orig-asset (get-asset file {})
+        options {:cache-mode :development}
+        orig-asset (get-asset file options)
         orig-ts (:last-modified orig-asset)]
 
     (testing "brand new asset"
@@ -44,13 +45,13 @@
       (is (> orig-ts 0)))
 
     (testing "up to date asset"
-      (let [asset (get-asset file {})]
+      (let [asset (get-asset file options)]
         (is (= orig-asset asset))
         (is (= orig-ts (:last-modified asset)))))
 
     (testing "out of date asset"
       (.setLastModified file (+ 1000 orig-ts))
-      (let [asset (get-asset file {})]
+      (let [asset (get-asset file options)]
         (is (not= orig-asset asset))
         (is (not= orig-ts (:last-modified asset)))
         (is (= "hello" (:content asset)))))))

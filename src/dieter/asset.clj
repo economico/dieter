@@ -45,15 +45,17 @@
 (defn get-asset [file options]
   "Given an asset, will either return cached contents
   or call read-asset to fetch contents into cache."
-  (if-let [asset (get @cache file)]
-    (if (file-changed? asset)
-      (let [refreshed (read-asset asset options)]
-        (swap! cache assoc file refreshed)
-        refreshed)
-      asset)
-    (let [asset (read-asset (make-asset file) options)]
-      (swap! cache assoc file asset)
-      asset)))
+  (if (= :development (:cache-mode options))
+    (if-let [asset (get @cache file)]
+      (if (file-changed? asset)
+        (let [refreshed (read-asset asset options)]
+          (swap! cache assoc file refreshed)
+          refreshed)
+        asset)
+      (let [asset (read-asset (make-asset file) options)]
+        (swap! cache assoc file asset)
+        asset))
+    (read-asset (make-asset file) options)))
 
 (defn wrap-content [file content]
   (string-builder "/* Source: " file " */\n" content))
