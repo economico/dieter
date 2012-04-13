@@ -47,7 +47,7 @@ We should probably consider outputting some kind of warning in that case."
                                  (find-file filename (.getParentFile manifest-file))))
                              (load-manifest manifest-file))))))
 
-(defrecord Dieter [file]
+(defrecord Dieter [file last-modified composed-of]
   dieter.asset.Asset
   (read-asset [this options]
     (let [builder (string-builder)
@@ -58,9 +58,14 @@ We should probably consider outputting some kind of warning in that case."
           result (make-asset (io/file target-name) {:file file})
           assets  (map #(get-asset % options)
                        (manifest-files (:file this)))]
-      ;; todo: only rebuild assets if (file-changed? result)
       (doseq [asset assets]
         (.append builder (:content asset)))
+
+      ;; return final asset which is composed of this dieter asset
+      ;; this asset is in turn composed of all concatenated assets
       (assoc result
         :content builder
-        :composed-of assets))))
+        :last-modified (.lastModified (:file this))
+        :composed-of [(assoc this
+                        :last-modified (.lastModified (:file this))
+                        :composed-of assets)]))))

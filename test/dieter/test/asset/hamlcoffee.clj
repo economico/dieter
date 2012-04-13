@@ -22,12 +22,9 @@
 
 (deftest test-hamlcoffee-record
   (testing "read-asset returns a Js asset"
-    (let [asset (map->HamlCoffee {:file (io/file "test/fixtures/assets/javascripts/basic.hamlc")})
-          after-read (read-asset asset {})]
-      (is (= dieter.asset.javascript.Js (class after-read)))
-      (is (= asset (first (:composed-of after-read))))
-      (is (not= nil (:last-modified after-read)))
-      (is (not= nil (:content after-read))))))
+    (asset-compiles-to
+     (map->HamlCoffee {:file (io/file "test/fixtures/assets/javascripts/basic.hamlc")})
+     dieter.asset.javascript.Js)))
 
   ;; (testing "file with surround and succeed"
   ;;   (is (= "TODO"

@@ -21,9 +21,6 @@
 
 (deftest test-less-record
   (testing "read-asset returns a Css asset"
-    (let [asset (map->Less {:file (io/file "test/fixtures/assets/stylesheets/basic.less")})
-          after-read (read-asset asset {})]
-      (is (= dieter.asset.css.Css (class after-read)))
-      (is (= asset (first (:composed-of after-read))))
-      (is (not= nil (:last-modified after-read)))
-      (is (not= nil (:content after-read))))))
+    (asset-compiles-to
+     (map->Less {:file (io/file "test/fixtures/assets/stylesheets/basic.less")})
+     dieter.asset.css.Css)))

@@ -12,10 +12,12 @@
   (with-scope pool ["less-wrapper.js" "less-rhino-1.2.1.js"]
     (call "compileLess" (.getCanonicalPath file))))
 
-(defrecord Less [file]
+(defrecord Less [file last-modified]
   dieter.asset.Asset
   (read-asset [this options]
-    (map->Css {:file (:file this)
-               :content (preprocess-less (:file this))
-               :last-modified (.lastModified (:file this))
-               :composed-of [this]})))
+    (let [file (:file this)
+          modified (.lastModified file)]
+      (map->Css {:file file
+                 :content (dieter.asset/wrap-content file (preprocess-less file))
+                 :last-modified modified
+                 :composed-of [(assoc this :last-modified modified)]}))))

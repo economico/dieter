@@ -22,9 +22,6 @@
 
 (deftest test-coffee-record
   (testing "read-asset returns a Js asset"
-    (let [asset (map->Coffee {:file (io/file "test/fixtures/assets/javascripts/test.js.coffee")})
-          after-read (read-asset asset {})]
-      (is (= dieter.asset.javascript.Js (class after-read)))
-      (is (= asset (first (:composed-of after-read))))
-      (is (not= nil (:last-modified after-read)))
-      (is (not= nil (:content after-read))))))
+    (asset-compiles-to
+     (map->Coffee {:file (io/file "test/fixtures/assets/javascripts/test.js.coffee")})
+     dieter.asset.javascript.Js)))

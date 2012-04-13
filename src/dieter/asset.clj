@@ -1,5 +1,7 @@
 (ns dieter.asset
-  (:use [dieter.path :only [file-ext]]))
+  (:use
+   [dieter.util :only [string-builder]]
+   [dieter.path :only [file-ext]]))
 
 (def cache "map of file objects to their representative assets"
   (atom {}))
@@ -45,8 +47,13 @@
   or call read-asset to fetch contents into cache."
   (if-let [asset (get @cache file)]
     (if (file-changed? asset)
-      (read-asset asset options)
+      (let [refreshed (read-asset asset options)]
+        (swap! cache assoc file refreshed)
+        refreshed)
       asset)
     (let [asset (read-asset (make-asset file) options)]
       (swap! cache assoc file asset)
       asset)))
+
+(defn wrap-content [file content]
+  (string-builder "/* Source: " file " */\n" content))

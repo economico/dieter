@@ -1,6 +1,6 @@
 (ns dieter.asset.javascript
-  (:require dieter.asset)
   (:use
+   [dieter.asset :only [read-asset wrap-content]]
    [dieter.util :only [slurp-into string-builder]])
   (:import
    [com.google.javascript.jscomp JSSourceFile CompilerOptions CompilationLevel WarningLevel]
@@ -33,11 +33,13 @@
 (defrecord Js [file content last-modified composed-of]
   dieter.asset.Asset
   (read-asset [this options]
-    (assoc this
-      :content (slurp-into
-                (string-builder "/* Source: " (:file this) " */\n")
-                (:file this))
-      :last-modified (.lastModified (:file this))))
+    (if (= 1 (count (:composed-of this)))
+      (read-asset (first (:composed-of this)) options)
+      (assoc this
+        :content (slurp-into
+                  (wrap-content (:file this) "")
+                  (:file this))
+        :last-modified (.lastModified (:file this)))))
 
   dieter.asset.Compressor
   (compress [this options]
